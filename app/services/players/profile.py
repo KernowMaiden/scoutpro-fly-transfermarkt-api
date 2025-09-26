@@ -66,7 +66,6 @@ class TransfermarktPlayerProfile(TransfermarktBase):
         self.response["fullName"] = self.get_text_by_xpath(Players.Profile.FULL_NAME)
         self.response["nameInHomeCountry"] = self.get_text_by_xpath(Players.Profile.NAME_IN_HOME_COUNTRY)
         self.response["imageUrl"] = self.get_text_by_xpath(Players.Profile.IMAGE_URL)
-        print("DEBUG DOB RAW:", self.get_text_by_xpath(Players.Profile.DATE_OF_BIRTH_AGE))
         self.response["dateOfBirth"] = safe_regex(
             self.get_text_by_xpath(Players.Profile.DATE_OF_BIRTH_AGE),
             REGEX_DOB_AGE,
