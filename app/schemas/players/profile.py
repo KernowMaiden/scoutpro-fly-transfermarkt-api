@@ -60,6 +60,8 @@ class PlayerProfile(TransfermarktBaseModel, AuditMixin):
     full_name: Optional[str]
     name_in_home_country: Optional[str]
     image_url: Optional[HttpUrl]
+    dateOfBirth: Optional[str] = None
+    dateOfBirthRaw: Optional[str] = None
     date_of_birth: Optional[date]
     place_of_birth: PlayerPlaceOfBirth
     age: Optional[int]
