@@ -1,4 +1,25 @@
 from dataclasses import dataclass
+from datetime import datetime
+import re
+
+# same separator-tolerant capture as regex.py, but local fallback if needed
+_DOB_FALLBACK = re.compile(r"(?P<dob>\d{1,2}[./-]\d{1,2}[./-]\d{4})")
+
+def clean_dob(raw_text: str) -> str | None:
+    """
+    Find a DD[./-]MM[./-]YYYY in the input and return ISO YYYY-MM-DD.
+    Returns None if not found or parsing fails.
+    """
+    if not raw_text:
+        return None
+    m = _DOB_FALLBACK.search(raw_text)
+    if not m:
+        return None
+    dob = m.group("dob").replace("-", ".").replace("/", ".")  # unify to dots
+    try:
+        return datetime.strptime(dob, "%d.%m.%Y").strftime("%Y-%m-%d")
+    except Exception:
+        return None
 
 from app.services.base import TransfermarktBase
 from app.utils.regex import REGEX_DOB_AGE
@@ -66,11 +87,18 @@ class TransfermarktPlayerProfile(TransfermarktBase):
         self.response["fullName"] = self.get_text_by_xpath(Players.Profile.FULL_NAME)
         self.response["nameInHomeCountry"] = self.get_text_by_xpath(Players.Profile.NAME_IN_HOME_COUNTRY)
         self.response["imageUrl"] = self.get_text_by_xpath(Players.Profile.IMAGE_URL)
-        self.response["dateOfBirth"] = safe_regex(
-            self.get_text_by_xpath(Players.Profile.DATE_OF_BIRTH_AGE),
-            REGEX_DOB_AGE,
-            "dob",
-        )
+        raw_dob_text = self.get_text_by_xpath(Players.Profile.DATE_OF_BIRTH_AGE)
+
+        if raw_dob_text:
+            # remove trailing "(38)" or similar age markers
+            raw_dob_only = raw_dob_text.split("(")[0].strip()
+        else:
+            raw_dob_only = None
+
+        # Store both versions
+        self.response["dateOfBirthRaw"] = raw_dob_only # "24/06/1987"
+        self.response["dateOfBirth"] = clean_dob(raw_dob_only) # "1987-06-24"
+
         self.response["placeOfBirth"] = {
             "city": self.get_text_by_xpath(Players.Profile.PLACE_OF_BIRTH_CITY),
             "country": self.get_text_by_xpath(Players.Profile.PLACE_OF_BIRTH_COUNTRY),
