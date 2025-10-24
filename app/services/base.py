@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 from xml.etree import ElementTree
+import time, random
 
 import requests
 from bs4 import BeautifulSoup
@@ -25,6 +26,7 @@ class TransfermarktBase:
     def make_request(self, url: Optional[str] = None) -> Response:
         """
         Make an HTTP GET request to the specified URL.
+        Includes a small random delay to avoid triggering Transfermarkt rate limits.
         """
         url = self.URL if not url else url
         try:
@@ -40,7 +42,11 @@ class TransfermarktBase:
                 "Connection": "keep-alive"
             }
 
+            # 🕒 Smart rate-limiting delay (prevents 403 Forbidden)
+            time.sleep(random.uniform(1.5, 3.0))
+
             response: Response = requests.get(url=url, headers=headers, timeout=15)
+
         except TooManyRedirects:
             raise HTTPException(status_code=404, detail=f"Not found for url: {url}")
         except ConnectionError:
@@ -61,22 +67,37 @@ class TransfermarktBase:
         return response
 
     def request_url_bsoup(self) -> BeautifulSoup:
+        """
+        Fetch the web page content and parse it using BeautifulSoup.
+        """
         response: Response = self.make_request()
         return BeautifulSoup(markup=response.content, features="html.parser")
 
     @staticmethod
     def convert_bsoup_to_page(bsoup: BeautifulSoup) -> ElementTree:
+        """
+        Convert a BeautifulSoup object to an ElementTree.
+        """
         return etree.HTML(str(bsoup))
 
     def request_url_page(self) -> ElementTree:
+        """
+        Fetch and parse the web page, returning an ElementTree.
+        """
         bsoup: BeautifulSoup = self.request_url_bsoup()
         return self.convert_bsoup_to_page(bsoup=bsoup)
 
     def raise_exception_if_not_found(self, xpath: str):
+        """
+        Raise an exception if a given XPath yields no results.
+        """
         if not self.get_text_by_xpath(xpath):
             raise HTTPException(status_code=404, detail=f"Invalid request (url: {self.URL})")
 
     def get_list_by_xpath(self, xpath: str, remove_empty: Optional[bool] = True) -> Optional[list]:
+        """
+        Extracts a list of elements by XPath.
+        """
         elements: list = self.page.xpath(xpath)
         if remove_empty:
             elements_valid: list = [trim(e) for e in elements if trim(e)]
@@ -93,6 +114,9 @@ class TransfermarktBase:
         iloc_to: Optional[int] = None,
         join_str: Optional[str] = None,
     ) -> Optional[str]:
+        """
+        Extracts text content from the web page using XPath.
+        """
         element = self.page.xpath(xpath)
 
         if not element:
@@ -122,6 +146,9 @@ class TransfermarktBase:
             return None
 
     def get_last_page_number(self, xpath_base: str = "") -> int:
+        """
+        Retrieve the last page number for a paginated result based on the provided base XPath.
+        """
         for xpath in [Pagination.PAGE_NUMBER_LAST, Pagination.PAGE_NUMBER_ACTIVE]:
             url_page = self.get_text_by_xpath(xpath_base + xpath)
             if url_page:
