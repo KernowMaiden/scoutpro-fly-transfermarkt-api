@@ -5,7 +5,9 @@ import re
 # same separator-tolerant capture as regex.py, but local fallback if needed
 _DOB_FALLBACK = re.compile(r"(?P<dob>\d{1,2}[./-]\d{1,2}[./-]\d{4})")
 
-def clean_dob(raw_text: str | None) -> str | None:
+from typing import Optional
+
+def clean_dob(raw_text: Optional[str]) -> Optional[str]:
     """
     Find a DD./MM./YYYY in the input and return ISO YYYY-MM-DD.
     Handles None or invalid inputs gracefully.
