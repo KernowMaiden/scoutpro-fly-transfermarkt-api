@@ -5,19 +5,25 @@ import re
 # same separator-tolerant capture as regex.py, but local fallback if needed
 _DOB_FALLBACK = re.compile(r"(?P<dob>\d{1,2}[./-]\d{1,2}[./-]\d{4})")
 
-def clean_dob(raw_text: str) -> str | None:
+def clean_dob(raw_text: str | None) -> str | None:
     """
-    Find a DD[./-]MM[./-]YYYY in the input and return ISO YYYY-MM-DD.
-    Returns None if not found or parsing fails.
+    Find a DD./MM./YYYY in the input and return ISO YYYY-MM-DD.
+    Handles None or invalid inputs gracefully.
     """
     if not raw_text:
         return None
-    m = _DOB_FALLBACK.search(raw_text)
-    if not m:
-        return None
-    dob = m.group("dob").replace("-", ".").replace("/", ".")  # unify to dots
+
+    import re
+    from datetime import datetime
+
     try:
-        return datetime.strptime(dob, "%d.%m.%Y").strftime("%Y-%m-%d")
+        # Extract digits from date-like string
+        m = re.search(r"(\d{1,2})[./-](\d{1,2})[./-](\d{4})", raw_text)
+        if not m:
+            return None
+
+        day, month, year = m.groups()
+        return datetime.strptime(f"{day}.{month}.{year}", "%d.%m.%Y").strftime("%Y-%m-%d")
     except Exception:
         return None
 
