@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for transfermarkt-api on 2024-04-06T13:49:40-03:00
+# fly.toml app configuration file generated for scoutpro-fly-transfermarkt-api on 2025-10-24T16:11:47Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'transfermarkt-api'
+app = 'scoutpro-fly-transfermarkt-api'
 primary_region = 'ams'
 
 [build]
@@ -11,7 +11,7 @@ primary_region = 'ams'
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
@@ -20,3 +20,4 @@ primary_region = 'ams'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 1024
