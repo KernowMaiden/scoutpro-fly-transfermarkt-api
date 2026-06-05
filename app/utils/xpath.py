@@ -1,4 +1,22 @@
 class Players:
+    class NationalTeam:
+        # Player "national team" page: /-/nationalmannschaft/spieler/{id}
+        # The data-header surfaces the national team under one of several labels —
+        # "Current international:", "Former international:" or "National player:" —
+        # all of which link the team via a "/.../startseite/verein/{id}" anchor,
+        # plus a "Caps/Goals: <caps> / <goals>" line. Targeting the verein anchor
+        # catches every label variant while excluding the competition theme-button
+        # (which links to "/.../pokalwettbewerb/...").
+        TEAM_NAME = "//ul[contains(@class,'data-header__items')]//a[contains(@href,'/startseite/verein/')]/text()"
+        TEAM_URL = "//ul[contains(@class,'data-header__items')]//a[contains(@href,'/startseite/verein/')]/@href"
+        INTL_LABEL = (
+            "//li[contains(@class,'data-header__label')]" "[.//a[contains(@href,'/startseite/verein/')]]/text()"
+        )
+        CAPS_GOALS = (
+            "//li[contains(@class,'data-header__label')][contains(normalize-space(.),'Caps/Goals')]"
+            "//a[contains(@class,'data-header__content')]/text()"
+        )
+
     class Injuries:
         RESULTS = "//div[@id='yw1']//tbody//tr"
         SEASONS = ".//td[1]//text()"

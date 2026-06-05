@@ -7,6 +7,7 @@ from app.services.players.achievements import TransfermarktPlayerAchievements
 from app.services.players.injuries import TransfermarktPlayerInjuries
 from app.services.players.jersey_numbers import TransfermarktPlayerJerseyNumbers
 from app.services.players.market_value import TransfermarktPlayerMarketValue
+from app.services.players.national_team import TransfermarktPlayerNationalTeam
 from app.services.players.profile import TransfermarktPlayerProfile
 from app.services.players.search import TransfermarktPlayerSearch
 from app.services.players.stats import TransfermarktPlayerStats
@@ -34,6 +35,13 @@ def get_player_market_value(player_id: str):
     tfmkt = TransfermarktPlayerMarketValue(player_id=player_id)
     player_market_value = tfmkt.get_player_market_value()
     return player_market_value
+
+
+@router.get("/{player_id}/national_team", response_model=schemas.PlayerNationalTeam, response_model_exclude_none=True)
+def get_player_national_team(player_id: str):
+    tfmkt = TransfermarktPlayerNationalTeam(player_id=player_id)
+    player_national_team = tfmkt.get_player_national_team()
+    return player_national_team
 
 
 @router.get("/{player_id}/transfers", response_model=schemas.PlayerTransfers, response_model_exclude_none=True)
