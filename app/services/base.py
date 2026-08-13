@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 from xml.etree import ElementTree
@@ -45,7 +46,30 @@ class TransfermarktBase:
             # 🕒 Smart rate-limiting delay (prevents 403 Forbidden)
             time.sleep(random.uniform(1.5, 3.0))
 
-            response: Response = requests.get(url=url, headers=headers, timeout=15)
+            # PROXY, OFF BY DEFAULT. 14 Aug 2026: Transfermarkt blocks Fly's
+            # address ranges. Proved by running THIS commit, in Docker, from a
+            # residential line: 200 and full data, while Amsterdam AND a
+            # freshly-built London machine both returned "Invalid request".
+            # The code was never the problem; the address was.
+            #
+            # Set SCRAPER_PROXY_URL (a Fly secret) to route through a
+            # residential provider:
+            #     http://user:pass@gateway.provider.com:7777
+            # Leave it unset and behaviour is byte-identical to before, so this
+            # is a switch rather than a rewrite and it can be turned off the
+            # moment a licensed feed replaces the scrape.
+            #
+            # Timeout is separate: residential proxies add 1-3s per hop, so 15s
+            # is tight once one is in front. It only rises when a proxy is set.
+            proxy_url = os.getenv("SCRAPER_PROXY_URL", "").strip()
+            proxies = (
+                {"http": proxy_url, "https": proxy_url} if proxy_url else None
+            )
+            timeout = int(os.getenv("SCRAPER_TIMEOUT", "45" if proxy_url else "15"))
+
+            response: Response = requests.get(
+                url=url, headers=headers, timeout=timeout, proxies=proxies
+            )
 
         except TooManyRedirects:
             raise HTTPException(status_code=404, detail=f"Not found for url: {url}")
