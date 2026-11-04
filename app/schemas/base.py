@@ -82,7 +82,13 @@ class TransfermarktBaseModel(BaseModel):
     def parse_height(cls, v: str) -> Optional[int]:
         if not v or not any(char.isdigit() for char in v):
             return None
-        return int(v.replace(",", "").replace("m", "").replace("،", ""))
+        # Transfermarkt renders height as METRES with a decimal comma, e.g.
+        # "1,80 m", on English pages too. Deleting the comma kept the digits and
+        # so happened to be right for a two-decimal source ("1,78 m" -> 178) and
+        # wrong for a one-decimal one ("1,7 m" -> 17). Read the comma as the
+        # DECIMAL SEPARATOR it is, then convert metres to centimetres.
+        metres = v.replace(",", ".").replace("،", ".").replace("m", "").strip()
+        return round(float(metres) * 100)
 
     @field_validator("days", mode="before", check_fields=False)
     def parse_days(cls, v: str) -> Optional[int]:
