@@ -23,6 +23,12 @@ def regex_date_mmm_dd_yyyy():
 
 
 @pytest.fixture
+def regex_date_iso_or_mmm_dd_yyyy():
+    """ISO for a day-first numeric date we normalise, or the untouched original for anything else."""
+    return Regex(r"^(\d{4}-\d{2}-\d{2})|(\w+\s\d+,\s\d+)|(-)$")
+
+
+@pytest.fixture
 def regex_market_value():
     return Regex(r"^(€\d+\.\d+.(m|bn))|(€\d+.k)|(-)$")
 

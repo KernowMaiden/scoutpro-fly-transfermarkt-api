@@ -13,7 +13,13 @@ def test_get_player_transfers_not_found():
 
 
 @pytest.mark.parametrize("player_id", ["28003", "8198"])
-def test_get_player_transfers(player_id, len_greater_than_0, regex_integer, regex_date_mmm_dd_yyyy, regex_market_value):
+def test_get_player_transfers(
+    player_id,
+    len_greater_than_0,
+    regex_integer,
+    regex_date_iso_or_mmm_dd_yyyy,
+    regex_market_value,
+):
     tfmkt = TransfermarktPlayerTransfers(player_id=player_id)
     result = tfmkt.get_player_transfers()
 
@@ -24,7 +30,8 @@ def test_get_player_transfers(player_id, len_greater_than_0, regex_integer, rege
                 {
                     "id": And(str, len_greater_than_0, regex_integer),
                     "season": And(str, len_greater_than_0),
-                    "date": And(str, len_greater_than_0, regex_date_mmm_dd_yyyy),
+                    "date": And(str, len_greater_than_0, regex_date_iso_or_mmm_dd_yyyy),
+                    "dateRaw": And(str, len_greater_than_0),
                     "from": {
                         "clubID": And(str, len_greater_than_0, regex_integer),
                         "clubName": And(str, len_greater_than_0),

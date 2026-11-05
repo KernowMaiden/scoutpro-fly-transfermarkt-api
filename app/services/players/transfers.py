@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from app.services.base import TransfermarktBase
-from app.utils.utils import extract_from_url, safe_split
+from app.utils.utils import extract_from_url, find_ddmmyyyy, safe_split
 from app.utils.xpath import Players
 
 
@@ -30,8 +30,9 @@ class TransfermarktPlayerTransfers(TransfermarktBase):
         """
         Parse and retrieve the transfer history of the specified player from Transfermarkt,
         including the unique identifier of each transfer, source club information (ID and name),
-        destination club information (ID and name), transfer date, upcoming status, season, market
-        value at the time of transfer, and transfer fee.
+        destination club information (ID and name), transfer date (ISO, plus the unparsed original
+        in `dateRaw`), upcoming status, season, market value at the time of transfer, and
+        transfer fee.
 
         Returns:
             list: A list of dictionaries, each containing details of the player's transfer history,
@@ -49,7 +50,15 @@ class TransfermarktPlayerTransfers(TransfermarktBase):
                     "id": extract_from_url(transfer["to"]["href"]),
                     "name": transfer["to"]["clubName"],
                 },
-                "date": transfer["date"],
+                # Transfermarkt serves this DAY FIRST ("01/07/2026" is 1 July 2026), and the
+                # Pydantic validator hands it to dateutil, which defaults to dayfirst=False.
+                # Normalise to ISO first so no parser has to guess. `find_ddmmyyyy` returns None
+                # for anything that is not a day-first numeric date (a textual date, or "-"),
+                # and those fall through to the raw value exactly as before.
+                "date": find_ddmmyyyy(transfer["date"]) or transfer["date"],
+                # The unparsed original, so the next format change is visible instead of silent.
+                # Mirrors `dateOfBirthRaw` on the profile endpoint.
+                "dateRaw": transfer["date"],
                 "upcoming": transfer["upcoming"],
                 "season": transfer["season"],
                 "marketValue": transfer["marketValue"],

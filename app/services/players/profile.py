@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 import re
 
 # same separator-tolerant capture as regex.py, but local fallback if needed
@@ -11,27 +10,15 @@ def clean_dob(raw_text: Optional[str]) -> Optional[str]:
     """
     Find a DD./MM./YYYY in the input and return ISO YYYY-MM-DD.
     Handles None or invalid inputs gracefully.
+
+    Behaviour is unchanged; the parsing now lives in `find_ddmmyyyy` so the transfer-date path
+    can call the same code instead of growing a second copy of it.
     """
-    if not raw_text:
-        return None
-
-    import re
-    from datetime import datetime
-
-    try:
-        # Extract digits from date-like string
-        m = re.search(r"(\d{1,2})[./-](\d{1,2})[./-](\d{4})", raw_text)
-        if not m:
-            return None
-
-        day, month, year = m.groups()
-        return datetime.strptime(f"{day}.{month}.{year}", "%d.%m.%Y").strftime("%Y-%m-%d")
-    except Exception:
-        return None
+    return find_ddmmyyyy(raw_text)
 
 from app.services.base import TransfermarktBase
 from app.utils.regex import REGEX_DOB_AGE
-from app.utils.utils import extract_from_url, safe_regex, trim
+from app.utils.utils import extract_from_url, find_ddmmyyyy, safe_regex, trim
 from app.utils.xpath import Players
 
 

@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import Optional, Union
 
 
@@ -138,3 +139,38 @@ def to_camel_case(headers: list) -> list:
     camel_case_headers = [header[0].lower() + header[1:] for header in camel_case_headers]
 
     return [header for header in camel_case_headers]
+
+
+def find_ddmmyyyy(raw_text: Optional[str]) -> Optional[str]:
+    """
+    Find a day-first numeric date (DD/MM/YYYY, DD.MM.YYYY, DD-MM-YYYY) and return ISO YYYY-MM-DD.
+
+    Transfermarkt serves numeric dates DAY FIRST: "01/07/2026" is 1 July 2026. This matters because
+    `TransfermarktBaseModel.parse_str_to_date` hands such a string to `dateutil.parser.parse`, whose
+    default is `dayfirst=False`, so "01/07/2026" silently became 7 January. `dateutil` is LENIENT,
+    so "25/08/2026" was coerced correctly, which confined the fault to dates whose day is 12 or
+    less and is why it went unnoticed. Normalising to ISO here removes the ambiguity before any
+    parser sees it, and ISO is read identically with or without `dayfirst`.
+
+    Note `dayfirst=True` is NOT a safe global fix: `dateutil.parser.parse("2026-07-01", dayfirst=True)`
+    returns 7 January 2026, so it corrupts ISO input, and that validator serves eleven date fields.
+
+    Args:
+        raw_text (Optional[str]): Text that may contain a day-first numeric date, possibly with
+            surrounding content such as a trailing age.
+
+    Returns:
+        Optional[str]: The date as ISO YYYY-MM-DD, or None when no valid day-first date is present.
+    """
+    if not raw_text or not isinstance(raw_text, str):
+        return None
+
+    match = re.search(r"(\d{1,2})[./-](\d{1,2})[./-](\d{4})", raw_text)
+    if not match:
+        return None
+
+    day, month, year = match.groups()
+    try:
+        return datetime.strptime(f"{day}.{month}.{year}", "%d.%m.%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        return None
