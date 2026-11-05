@@ -63,6 +63,13 @@ class TransfermarktPlayerTransfers(TransfermarktBase):
                 "season": transfer["season"],
                 "marketValue": transfer["marketValue"],
                 "fee": transfer["fee"],
+                # The unparsed fee. `parse_str_to_int` keeps only money, so "Loan",
+                # "End of loan", "Free transfer" and "?" all collapse to null and the
+                # loan-versus-permanent distinction is destroyed here, in this service,
+                # before any consumer sees it. Transfermarkt's /transfers payload has no
+                # contract-option field, so this string is the ONLY discriminator it
+                # offers. Same reasoning as `dateRaw`: keep the original.
+                "feeRaw": transfer["fee"],
             }
             for transfer in transfers
         ]

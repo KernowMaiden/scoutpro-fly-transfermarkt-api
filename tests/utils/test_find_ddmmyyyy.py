@@ -64,6 +64,40 @@ def test_the_fault_is_real_and_the_fix_removes_it():
     assert find_ddmmyyyy(raw) == "2026-07-01"  # the fix
 
 
+@pytest.mark.parametrize(
+    ("raw_fee", "expected_fee"),
+    [
+        ("Loan", None),
+        ("End of loan", None),
+        ("Free transfer", None),
+        ("?", None),
+        ("\u20ac5.00m", 5000000),
+    ],
+)
+def test_a_textual_fee_survives_as_text_while_fee_stays_numeric(raw_fee, expected_fee):
+    """
+    `parse_str_to_int` keeps only money, so "Loan" collapses to null and the
+    loan-versus-permanent distinction was destroyed before any consumer saw it.
+
+    Transfermarkt's /transfers payload carries no contract-option field, so this string is
+    the only discriminator it offers. `feeRaw` keeps it; `fee` is unchanged.
+    """
+    transfer = PlayerTransfer(
+        id="1",
+        clubFrom={"id": "1", "name": "a"},
+        clubTo={"id": "2", "name": "b"},
+        date="2026-07-01",
+        dateRaw="01/07/2026",
+        upcoming=False,
+        season="26/27",
+        marketValue=None,
+        fee=raw_fee,
+        feeRaw=raw_fee,
+    )
+    assert transfer.fee == expected_fee
+    assert transfer.fee_raw == raw_fee
+
+
 def test_the_model_emits_the_corrected_date_and_keeps_the_original():
     """End to end through the real Pydantic model, with the payload shaped as the service builds it."""
     raw = "01/07/2026"
@@ -77,6 +111,7 @@ def test_the_model_emits_the_corrected_date_and_keeps_the_original():
         season="26/27",
         marketValue=None,
         fee=None,
+        feeRaw=None,
     )
     assert transfer.date.isoformat() == "2026-07-01"
     assert transfer.date_raw == "01/07/2026"

@@ -19,6 +19,7 @@ class PlayerTransfer(TransfermarktBaseModel):
     season: str
     market_value: Optional[int]
     fee: Optional[int]
+    fee_raw: Optional[str]
 
 
 class PlayerTransfers(TransfermarktBaseModel, AuditMixin):

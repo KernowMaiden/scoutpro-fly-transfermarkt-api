@@ -43,6 +43,7 @@ def test_get_player_transfers(
                     "upcoming": bool,
                     Optional("marketValue"): And(str, len_greater_than_0, regex_market_value),
                     Optional("fee"): And(str, len_greater_than_0),
+                    Optional("feeRaw"): And(str, len_greater_than_0),
                 },
             ],
             "youthClubs": list,
