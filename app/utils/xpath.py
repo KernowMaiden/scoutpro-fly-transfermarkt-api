@@ -48,6 +48,17 @@ class Players:
         MOST_GAMES_FOR_CLUB_NAME = "//span[contains(text(),'Most games for:')]//span//a//text()"
         RETIRED_SINCE_DATE = "//span[contains(text(),'Retired since:')]//span//text()"
         CURRENT_CLUB_CONTRACT_EXPIRES = "//span[contains(text(),'Contract expires')]//following::span[1]//text()"
+        # A LOANEE'S PAGE CARRIES TWO CONTRACT DATES AND WE ONLY READ ONE.
+        # "Contract expires" at a loan club is the LOAN WINDOW; the parent
+        # club's deal is under "Contract there expires". Without this, tIQ
+        # holds no parent contract for any player signed while out on loan and
+        # the field can never fill while the loan runs (#623).
+        # The two labels do not collide: "Contract there expires" does not
+        # contain the substring "Contract expires", so the existing xpath above
+        # is unaffected.
+        CURRENT_CLUB_CONTRACT_THERE_EXPIRES = (
+            "//span[contains(text(),'Contract there expires')]//following::span[1]//text()"
+        )
         CURRENT_CLUB_CONTRACT_OPTION = "//span[contains(text(),'Contract option:')]//following::span[1]//text()"
         NAME_IN_HOME_COUNTRY = "//span[text()='Name in home country:']//following::span[1]//text()"
         FULL_NAME = "//span[text()='Full name:']//following::span[1]//text()"

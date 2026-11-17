@@ -22,6 +22,9 @@ class PlayerClub(TransfermarktBaseModel):
     name: str
     joined: Optional[date]
     contract_expires: Optional[date]
+    # The PARENT club's deal, present only while the player is out on loan.
+    # `contract_expires` is the loan window in that case (#623).
+    contract_there_expires: Optional[date]
     contract_option: Optional[str]
     # Retired player
     last_club_id: Optional[str]

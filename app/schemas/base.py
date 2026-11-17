@@ -24,6 +24,7 @@ class TransfermarktBaseModel(BaseModel):
         "until_date",
         "date",
         "contract_expires",
+        "contract_there_expires",
         "joined",
         "retired_since",
         mode="before",

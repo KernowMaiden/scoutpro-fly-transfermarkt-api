@@ -118,6 +118,7 @@ class TransfermarktPlayerProfile(TransfermarktBase):
             "name": self.get_text_by_xpath(Players.Profile.CURRENT_CLUB_NAME),
             "joined": self.get_text_by_xpath(Players.Profile.CURRENT_CLUB_JOINED),
             "contractExpires": self.get_text_by_xpath(Players.Profile.CURRENT_CLUB_CONTRACT_EXPIRES),
+            "contractThereExpires": self.get_text_by_xpath(Players.Profile.CURRENT_CLUB_CONTRACT_THERE_EXPIRES),
             "contractOption": self.get_text_by_xpath(Players.Profile.CURRENT_CLUB_CONTRACT_OPTION),
             "lastClubId": extract_from_url(self.get_text_by_xpath(Players.Profile.LAST_CLUB_URL)),
             "lastClubName": self.get_text_by_xpath(Players.Profile.LAST_CLUB_NAME),
